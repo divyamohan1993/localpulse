@@ -1,0 +1,14 @@
+{
+  "name": "LocalPulse — verified status for your town",
+  "short_name": "LocalPulse",
+  "description": "AI crisis management for small communities. Mobile-first, multilingual, voice-first.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FF6B35",
+  "icons": [
+    { "src": "/favicon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "any maskable" }
+  ],
+  "lang": "en",
+  "categories": ["safety", "news", "utilities"]
+}

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0F172A">
+<title>Voice helpline — LocalPulse</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="appbar">
+  <a href="/" class="brand"><span class="brand-logo"><span class="ring"></span><span class="dot"></span></span><span class="brand-text">LocalPulse</span></a>
+  <nav class="appnav">
+    <a href="/" class="nav-link">Dashboard</a>
+    <a href="/responder" class="nav-link">Responder</a>
+    <a href="/voice" class="nav-link is-active">Voice</a>
+    <a href="/pitch" class="nav-link">Pitch</a>
+    <a href="/report" class="nav-link">Report</a>
+  </nav>
+  <div class="appbar-tail">
+    <label class="lang-select-wrap"><select id="lang-select">
+      <option value="en">English</option><option value="hi">हिन्दी</option><option value="pa">ਪੰਜਾਬੀ</option><option value="ta">தமிழ்</option><option value="bn">বাংলা</option>
+    </select></label>
+  </div>
+</header>
+
+<main id="main" class="container voice-container">
+  <section class="voice-hero">
+    <h1>Voice helpline <span class="muted">(demo)</span></h1>
+    <p class="lead">For elderly residents without a smartphone, LocalPulse runs a phone line. Call in your language, ask about roads, shelters, power, water, medical help, or get connected to 112.</p>
+    <p class="prod-note">Production: Twilio Voice → OpenAI Whisper STT → intent classifier (LLM) → response → TTS. This page is a browser-only demo using Web Speech API; it never leaves your device.</p>
+  </section>
+
+  <section class="voice-stage">
+    <div class="phone-frame">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div class="phone-status">
+          <span>1800-LOCAL-PULSE</span>
+          <span id="call-state">idle</span>
+        </div>
+        <div class="orb-wrap">
+          <div class="orb" id="orb"><div class="orb-pulse"></div></div>
+        </div>
+        <div class="caption-wrap">
+          <div class="caption-label">You said</div>
+          <div class="caption-line caption-user" id="cap-user">— press the button and speak —</div>
+          <div class="caption-label">LocalPulse</div>
+          <div class="caption-line caption-bot" id="cap-bot">—</div>
+          <div class="caption-meta">
+            <span>Intent: <code id="meta-intent">—</code></span>
+            <span>Lang: <code id="meta-lang">en</code></span>
+          </div>
+        </div>
+        <div class="phone-controls">
+          <button class="phone-btn phone-btn-call" id="call-btn">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z"/></svg>
+            Tap to talk
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <aside class="voice-side">
+      <h2>Try saying</h2>
+      <ul class="suggest-list" id="suggest-list">
+        <li><button class="suggest" data-text="Where is the nearest shelter?">Where is the nearest shelter?</button></li>
+        <li><button class="suggest" data-text="Is NH-5 open?">Is NH-5 open?</button></li>
+        <li><button class="suggest" data-text="When will the power come back?">When will the power come back?</button></li>
+        <li><button class="suggest" data-text="I need a doctor">I need a doctor</button></li>
+        <li><button class="suggest" data-text="Where can I get drinking water?">Where can I get drinking water?</button></li>
+        <li><button class="suggest" data-text="Emergency, please send an ambulance">Emergency, please send an ambulance</button></li>
+      </ul>
+      <h2>Languages</h2>
+      <ul class="lang-list">
+        <li>English</li><li>हिन्दी</li><li>ਪੰਜਾਬੀ</li><li>தமிழ்</li><li>বাংলা</li>
+      </ul>
+      <p class="muted small">In MLP, the browser does TTS + STT; the server only classifies intent. In production, the audio path runs on Twilio + Whisper for telephone callers (no smartphone needed).</p>
+    </aside>
+  </section>
+
+  <section class="voice-transcript card">
+    <header class="card-head"><h2>Transcript</h2><button class="btn btn-ghost" id="clear-transcript">Clear</button></header>
+    <ol class="transcript" id="transcript" aria-live="polite"></ol>
+  </section>
+</main>
+
+<footer class="appfoot">
+  <div>Voice helpline · demo on this page · production target: Twilio Voice + OpenAI Whisper + GPT-4o + Polly TTS, with PSTN fallback.</div>
+</footer>
+
+<script src="/js/voice.js" defer></script>
+</body>
+</html>

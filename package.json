@@ -1,0 +1,21 @@
+{
+  "name": "localpulse",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LocalPulse — AI crisis management for small communities. Capstone project, B.Tech CSE Cloud Computing, Shoolini University.",
+  "main": "server.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "4.21.1",
+    "compression": "1.7.5"
+  },
+  "author": "Anshuman Mohanty <GF202217744>",
+  "license": "MIT"
+}

@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0F172A">
+<meta name="description" content="LocalPulse — verified status for your town. Built for slow phones, bad internet, small towns.">
+<title>LocalPulse — verified status for your town</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://unpkg.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="/css/app.css">
+<meta property="og:title" content="LocalPulse — verified status for your town">
+<meta property="og:description" content="AI crisis management for small communities. Mobile-first, multilingual, voice-first.">
+<meta property="og:type" content="website">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="appbar" role="banner">
+  <a href="/" class="brand" aria-label="LocalPulse home">
+    <span class="brand-logo" aria-hidden="true">
+      <span class="ring"></span><span class="dot"></span>
+    </span>
+    <span class="brand-text">LocalPulse</span>
+  </a>
+  <nav class="appnav" aria-label="Primary">
+    <a href="/" class="nav-link is-active" data-i18n="nav.dashboard">Dashboard</a>
+    <a href="/responder" class="nav-link" data-i18n="nav.responder">Responder</a>
+    <a href="/voice" class="nav-link" data-i18n="nav.voice">Voice</a>
+    <a href="/pitch" class="nav-link" data-i18n="nav.pitch">Pitch</a>
+    <a href="/report" class="nav-link" data-i18n="nav.report">Report</a>
+  </nav>
+  <div class="appbar-tail">
+    <span class="status-pill" id="status-pill" data-state="online" aria-live="polite">
+      <span class="status-dot" aria-hidden="true"></span>
+      <span data-i18n="status.online">Live</span>
+    </span>
+    <label class="lang-select-wrap" aria-label="Language">
+      <select id="lang-select">
+        <option value="en">English</option>
+        <option value="hi">हिन्दी</option>
+        <option value="pa">ਪੰਜਾਬੀ</option>
+        <option value="ta">தமிழ்</option>
+        <option value="bn">বাংলা</option>
+      </select>
+    </label>
+    <button class="btn btn-ghost theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="main" class="container">
+  <section class="hero">
+    <h1 class="hero-title">
+      <span data-i18n="appName">LocalPulse</span>
+      <span class="hero-sub" data-i18n="tagline">Verified status for your town.</span>
+    </h1>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="#report-form">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        <span data-i18n="cta.report">Report an issue</span>
+      </a>
+      <a class="btn btn-secondary" href="/voice">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z"/></svg>
+        <span data-i18n="cta.call">Voice line</span>
+      </a>
+    </div>
+    <p class="privacy-note" data-i18n="privacy">No login. No tracking. Data stays in India.</p>
+  </section>
+
+  <section class="kpi-strip" id="kpi-strip" aria-label="Live counters">
+    <div class="kpi"><div class="kpi-num" id="kpi-incidents">—</div><div class="kpi-label" data-i18n="incidents">Incidents</div></div>
+    <div class="kpi"><div class="kpi-num" id="kpi-shelters">—</div><div class="kpi-label" data-i18n="shelters">Shelters</div></div>
+    <div class="kpi"><div class="kpi-num" id="kpi-voice">—</div><div class="kpi-label">Voice calls / hr</div></div>
+    <div class="kpi"><div class="kpi-num" id="kpi-sources">—</div><div class="kpi-label">Sources scanned</div></div>
+  </section>
+
+  <section class="grid-2col">
+    <article class="card map-card">
+      <header class="card-head">
+        <h2>Live map</h2>
+        <div class="filters" role="tablist" aria-label="Filter incidents by category">
+          <button class="chip is-active" data-filter="all" role="tab">All</button>
+          <button class="chip" data-filter="road" role="tab" data-i18n="cat.road">Roads</button>
+          <button class="chip" data-filter="shelter" role="tab" data-i18n="cat.shelter">Shelter</button>
+          <button class="chip" data-filter="power" role="tab" data-i18n="cat.power">Power</button>
+          <button class="chip" data-filter="water" role="tab" data-i18n="cat.water">Water</button>
+          <button class="chip" data-filter="medical" role="tab" data-i18n="cat.medical">Medical</button>
+          <button class="chip" data-filter="rumor" role="tab" data-i18n="cat.rumor">Rumor flagged</button>
+        </div>
+      </header>
+      <div id="map" class="map" aria-label="Map of incidents"></div>
+    </article>
+
+    <article class="card summary-card">
+      <header class="card-head">
+        <h2 data-i18n="summaryTitle">Last hour summary</h2>
+        <span class="badge">AI</span>
+      </header>
+      <ul class="summary-list" id="summary-list" aria-live="polite"></ul>
+      <p class="muted small">Pipeline: ingest → dedupe → classify → cluster → summarise. MLP uses curated mock; production swaps in Twitter / Reddit feeds + LLM summariser.</p>
+    </article>
+  </section>
+
+  <section class="card">
+    <header class="card-head">
+      <h2 data-i18n="incidents">Incidents</h2>
+      <span class="muted small" id="incident-count">—</span>
+    </header>
+    <ul class="incident-list" id="incident-list"></ul>
+  </section>
+
+  <section class="card">
+    <header class="card-head">
+      <h2 data-i18n="shelters">Open shelters</h2>
+    </header>
+    <div class="shelter-grid" id="shelter-grid"></div>
+  </section>
+
+  <section class="card form-card" id="report-form">
+    <header class="card-head"><h2 data-i18n="cta.report">Report an issue</h2></header>
+    <form id="user-report-form" class="form-grid" novalidate>
+      <label class="field">
+        <span>Category</span>
+        <select name="category" required>
+          <option value="road" data-i18n="cat.road">Roads</option>
+          <option value="shelter" data-i18n="cat.shelter">Shelter</option>
+          <option value="power" data-i18n="cat.power">Power</option>
+          <option value="water" data-i18n="cat.water">Water</option>
+          <option value="medical" data-i18n="cat.medical">Medical</option>
+          <option value="other">Other</option>
+        </select>
+      </label>
+      <label class="field field-wide">
+        <span>What's happening?</span>
+        <textarea name="message" rows="3" maxlength="500" placeholder="Short, specific description. Include nearest landmark."></textarea>
+      </label>
+      <button class="btn btn-primary" type="submit">Send</button>
+      <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+</main>
+
+<footer class="appfoot" role="contentinfo">
+  <div>
+    LocalPulse · capstone by <strong>Anshuman Mohanty</strong> (GF202217744) · B.Tech CSE Cloud Computing · Shoolini University · Mentor: Mr. Ashish.
+  </div>
+  <div>
+    <a href="/pitch">Pitch deck</a> · <a href="/report">Project report</a> · <a href="/healthz">Health</a>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/js/app.js" defer></script>
+</body>
+</html>

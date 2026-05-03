@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0B0F1A">
+<title>Responder Console — LocalPulse</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="responder-body">
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="appbar appbar-dark">
+  <a href="/" class="brand" aria-label="LocalPulse home">
+    <span class="brand-logo" aria-hidden="true"><span class="ring"></span><span class="dot"></span></span>
+    <span class="brand-text">LocalPulse</span>
+    <span class="brand-sub">RESPONDER</span>
+  </a>
+  <nav class="appnav" aria-label="Primary">
+    <a href="/" class="nav-link">Dashboard</a>
+    <a href="/responder" class="nav-link is-active">Responder</a>
+    <a href="/voice" class="nav-link">Voice</a>
+    <a href="/pitch" class="nav-link">Pitch</a>
+    <a href="/report" class="nav-link">Report</a>
+  </nav>
+  <div class="appbar-tail">
+    <span class="status-pill" id="status-pill" data-state="online"><span class="status-dot"></span><span>Live</span></span>
+    <label class="lang-select-wrap"><select id="lang-select">
+      <option value="en">English</option><option value="hi">हिन्दी</option><option value="pa">ਪੰਜਾਬੀ</option><option value="ta">தமிழ்</option><option value="bn">বাংলা</option>
+    </select></label>
+  </div>
+</header>
+
+<main id="main" class="responder-shell">
+  <aside class="responder-sidebar" aria-label="Counters">
+    <div class="op-kpi"><span class="op-kpi-num" id="kpi-incidents">—</span><span class="op-kpi-label">Active incidents</span></div>
+    <div class="op-kpi"><span class="op-kpi-num" id="kpi-shelters">—</span><span class="op-kpi-label">Shelters open</span></div>
+    <div class="op-kpi"><span class="op-kpi-num" id="kpi-voice">—</span><span class="op-kpi-label">Voice calls / hr</span></div>
+    <div class="op-kpi"><span class="op-kpi-num" id="kpi-sources">—</span><span class="op-kpi-label">Sources scanned</span></div>
+    <div class="threat-meter">
+      <div class="threat-meter-label">Town status</div>
+      <div class="threat-bar"><span id="threat-fill"></span></div>
+      <div class="threat-meter-state" id="threat-state">Heightened</div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="dot dot-high"></span>High severity</div>
+      <div class="legend-item"><span class="dot dot-med"></span>Medium</div>
+      <div class="legend-item"><span class="dot dot-low"></span>Low / info</div>
+      <div class="legend-item"><span class="dot dot-rumor"></span>Rumor flagged</div>
+    </div>
+  </aside>
+
+  <section class="responder-main">
+    <div class="responder-grid">
+      <article class="card op-card op-map-card">
+        <header class="card-head">
+          <h2>Operational map</h2>
+          <div class="filters" role="tablist">
+            <button class="chip is-active" data-filter="all" role="tab">All</button>
+            <button class="chip" data-filter="road" role="tab">Roads</button>
+            <button class="chip" data-filter="shelter" role="tab">Shelter</button>
+            <button class="chip" data-filter="power" role="tab">Power</button>
+            <button class="chip" data-filter="water" role="tab">Water</button>
+            <button class="chip" data-filter="medical" role="tab">Medical</button>
+            <button class="chip" data-filter="rumor" role="tab">Rumor</button>
+          </div>
+        </header>
+        <div id="map" class="map map-tall"></div>
+      </article>
+
+      <article class="card op-card op-feed-card">
+        <header class="card-head">
+          <h2>Incident feed</h2>
+          <span class="muted small" id="incident-count">—</span>
+        </header>
+        <ul class="incident-list incident-list-dense" id="incident-list"></ul>
+      </article>
+
+      <article class="card op-card op-summary-card">
+        <header class="card-head"><h2>AI summary (60 min)</h2><span class="badge">AI</span></header>
+        <ul class="summary-list" id="summary-list" aria-live="polite"></ul>
+      </article>
+
+      <article class="card op-card op-stream-card">
+        <header class="card-head"><h2>Pulse stream</h2><span class="badge">SSE</span></header>
+        <pre class="stream" id="pulse-stream" aria-live="off">awaiting events…</pre>
+      </article>
+
+      <article class="card op-card op-shelters-card">
+        <header class="card-head"><h2>Shelters</h2></header>
+        <div class="shelter-grid" id="shelter-grid"></div>
+      </article>
+    </div>
+  </section>
+</main>
+
+<footer class="appfoot">
+  <div>Responder console — operational view. Auth, RBAC, and audit log enabled in production. MLP shows synthetic data.</div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/js/app.js" defer></script>
+</body>
+</html>

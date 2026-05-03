@@ -1,0 +1,1202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#0A0A0B" />
+<meta name="description" content="LocalPulse — AI crisis management for small communities. Capstone pitch by Anshuman Mohanty, Shoolini University." />
+<meta property="og:title" content="LocalPulse — AI crisis management for small communities" />
+<meta property="og:description" content="Mobile-first AI crisis dashboard. Social-feed summaries, multilingual voice line, runs on slow phones and bad internet." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://localpulse.dmj.one/pitch" />
+<title>LocalPulse — Pitch</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: { 950: '#08080A', 900: '#0A0A0B', 850: '#0E0E11', 800: '#141418', 700: '#1B1B22', 600: '#26262F' },
+          pulse: { 50:'#FFF1EA', 100:'#FFD9C2', 300:'#FFA274', 400:'#FF8A52', 500:'#FF6B35', 600:'#E5571F', 700:'#B53F12' },
+          mist: { 100: '#F4F4F6', 200: '#D9D9DF', 300: '#A8A8B3', 400: '#7A7A86', 500: '#54545E' }
+        },
+        fontFamily: {
+          display: ['"Space Grotesk"','ui-sans-serif','system-ui'],
+          body: ['Inter','ui-sans-serif','system-ui']
+        }
+      }
+    }
+  };
+</script>
+
+<style>
+  :root {
+    --pulse: #FF6B35;
+    --pulse-soft: rgba(255,107,53,.18);
+    --ink: #0A0A0B;
+    --ink-2: #0E0E11;
+    --line: rgba(255,255,255,.07);
+    --line-2: rgba(255,255,255,.12);
+    --text: #F4F4F6;
+    --muted: #A8A8B3;
+  }
+
+  * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--text);
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  /* Subtle grid + radial glow background */
+  .stage::before {
+    content: "";
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(1200px 600px at 12% -10%, rgba(255,107,53,0.10), transparent 60%),
+      radial-gradient(900px 500px at 100% 110%, rgba(255,107,53,0.06), transparent 60%),
+      linear-gradient(to right, rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: auto, auto, 64px 64px, 64px 64px;
+    pointer-events: none;
+    z-index: 0;
+    mask-image: radial-gradient(ellipse at center, black 55%, transparent 95%);
+  }
+
+  .deck {
+    position: relative;
+    z-index: 1;
+    height: 100dvh;
+    width: 100vw;
+    overflow: hidden;
+  }
+  .track {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    transition: transform 600ms cubic-bezier(.22,.61,.36,1);
+    will-change: transform;
+  }
+  .slide {
+    flex: 0 0 100%;
+    height: 100%;
+    width: 100%;
+    padding: clamp(24px, 4vw, 64px) clamp(20px, 5vw, 80px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .slide-inner {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* slide-enter animation */
+  .slide.is-active .anim {
+    animation: rise 700ms cubic-bezier(.22,.61,.36,1) both;
+  }
+  .slide.is-active .anim-1 { animation-delay: 60ms; }
+  .slide.is-active .anim-2 { animation-delay: 160ms; }
+  .slide.is-active .anim-3 { animation-delay: 260ms; }
+  .slide.is-active .anim-4 { animation-delay: 360ms; }
+  .slide.is-active .anim-5 { animation-delay: 460ms; }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px); filter: blur(4px); }
+    to   { opacity: 1; transform: translateY(0);    filter: blur(0); }
+  }
+
+  /* PULSE wordmark */
+  .pulse-mark {
+    display: inline-flex; align-items: center; gap: .55rem;
+    font-family: 'Space Grotesk', sans-serif; font-weight: 700;
+    letter-spacing: .14em; font-size: .78rem; text-transform: uppercase;
+    color: var(--text);
+  }
+  .pulse-dot {
+    position: relative;
+    width: .55rem; height: .55rem; border-radius: 999px;
+    background: var(--pulse);
+    box-shadow: 0 0 0 0 rgba(255,107,53,.6);
+    animation: pulsate 2.2s ease-out infinite;
+  }
+  .pulse-dot::after {
+    content: ""; position: absolute; inset: -6px; border-radius: 999px;
+    border: 1px solid var(--pulse);
+    opacity: .35;
+    animation: ring 2.2s ease-out infinite;
+  }
+  @keyframes pulsate {
+    0%   { box-shadow: 0 0 0 0 rgba(255,107,53,.55); }
+    70%  { box-shadow: 0 0 0 14px rgba(255,107,53,0); }
+    100% { box-shadow: 0 0 0 0 rgba(255,107,53,0); }
+  }
+  @keyframes ring {
+    0%   { transform: scale(.8); opacity: .55; }
+    100% { transform: scale(2.4); opacity: 0; }
+  }
+
+  /* Headings */
+  .h-display {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.02;
+    font-size: clamp(2.2rem, 6.2vw, 5.8rem);
+  }
+  .h-section {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    font-size: clamp(1.8rem, 4.4vw, 3.6rem);
+  }
+  .h-eyebrow {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    font-size: clamp(.7rem, 1vw, .82rem);
+    color: var(--pulse);
+  }
+  .body-lg {
+    font-size: clamp(1rem, 1.4vw, 1.2rem);
+    color: var(--muted);
+    line-height: 1.55;
+    font-weight: 400;
+  }
+  .body-md { font-size: clamp(.9rem, 1.1vw, 1rem); color: var(--muted); line-height: 1.5; }
+  .body-sm { font-size: clamp(.78rem, .9vw, .88rem); color: var(--muted); line-height: 1.45; }
+
+  /* Card */
+  .card {
+    background: linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.012));
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    backdrop-filter: blur(8px);
+  }
+  .card-hi {
+    background:
+      radial-gradient(220px 120px at 30% 0%, rgba(255,107,53,.10), transparent 70%),
+      linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+    border: 1px solid var(--line-2);
+    border-radius: 18px;
+  }
+  .accent { color: var(--pulse); }
+  .hairline { border-color: var(--line); }
+  .num-stat {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    letter-spacing: -.03em;
+    font-size: clamp(2.4rem, 5.5vw, 4rem);
+    line-height: 1;
+  }
+
+  /* progress + counter */
+  .progress {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    height: 2px; background: rgba(255,255,255,.06);
+    z-index: 30;
+  }
+  .progress-bar {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--pulse) 0%, #FFB07B 100%);
+    box-shadow: 0 0 18px rgba(255,107,53,.6);
+    transition: width 500ms cubic-bezier(.22,.61,.36,1);
+  }
+  .counter {
+    position: fixed; right: 18px; bottom: 16px;
+    z-index: 30;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    font-size: 12px;
+    letter-spacing: .12em;
+    color: var(--muted);
+    background: rgba(10,10,11,.6);
+    border: 1px solid var(--line);
+    padding: 6px 10px;
+    border-radius: 999px;
+    backdrop-filter: blur(8px);
+  }
+  .counter b { color: var(--text); font-weight: 600; }
+  .nav-fab {
+    position: fixed; left: 18px; bottom: 16px;
+    z-index: 30; display: flex; gap: 6px;
+  }
+  .nav-fab button {
+    width: 32px; height: 32px; border-radius: 999px;
+    background: rgba(10,10,11,.6);
+    border: 1px solid var(--line);
+    color: var(--mist-200, #D9D9DF);
+    backdrop-filter: blur(8px);
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all .2s ease;
+  }
+  .nav-fab button:hover, .nav-fab button:focus-visible { border-color: var(--pulse); color: var(--pulse); outline: none; }
+  .key {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; font-weight: 500;
+    border: 1px solid var(--line-2);
+    background: rgba(255,255,255,.04);
+    color: var(--text);
+    padding: 2px 7px; border-radius: 6px;
+  }
+
+  /* keybind dialog */
+  .modal { position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.55); backdrop-filter: blur(6px); }
+  .modal[open], .modal.open { display: flex; }
+  .modal-card {
+    width: min(420px, 90vw);
+    background: var(--ink-2);
+    border: 1px solid var(--line-2);
+    border-radius: 16px;
+    padding: 22px;
+  }
+
+  /* phone frame */
+  .phone {
+    width: clamp(220px, 22vw, 280px);
+    aspect-ratio: 9/19;
+    border-radius: 36px;
+    background: linear-gradient(180deg, #16161B, #0C0C10);
+    border: 1px solid rgba(255,255,255,.10);
+    box-shadow:
+      0 30px 60px -25px rgba(0,0,0,.6),
+      0 0 0 1px rgba(255,255,255,.04) inset,
+      0 0 60px -10px rgba(255,107,53,.18);
+    padding: 10px;
+    position: relative;
+  }
+  .phone::before {
+    content: ""; position: absolute; left: 50%; top: 14px;
+    transform: translateX(-50%);
+    width: 84px; height: 18px; border-radius: 999px;
+    background: #050508; border: 1px solid rgba(255,255,255,.06);
+  }
+  .phone-screen {
+    width: 100%; height: 100%;
+    border-radius: 28px;
+    background: #08080A;
+    border: 1px solid rgba(255,255,255,.05);
+    overflow: hidden;
+    position: relative;
+  }
+  .status-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px 4px;
+    font-size: 10px; font-family: 'Space Grotesk', sans-serif; color: var(--muted);
+  }
+  .status-row .dot { width: 6px; height: 6px; background: var(--pulse); border-radius: 999px; box-shadow: 0 0 10px var(--pulse); }
+
+  /* arrow connector */
+  .conn {
+    position: relative; height: 1px; background: linear-gradient(90deg, transparent, var(--line-2), transparent);
+  }
+  .conn::after {
+    content: ""; position: absolute; right: -1px; top: -3px;
+    width: 6px; height: 6px; border-top: 1px solid var(--line-2); border-right: 1px solid var(--line-2);
+    transform: rotate(45deg);
+  }
+
+  /* reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .track { transition: none; }
+    .slide.is-active .anim { animation: none; }
+    .pulse-dot { animation: none; }
+    .pulse-dot::after { animation: none; opacity: .3; }
+    .progress-bar { transition: none; }
+  }
+
+  /* focus */
+  :focus-visible { outline: 2px solid var(--pulse); outline-offset: 3px; border-radius: 6px; }
+
+  /* mobile */
+  @media (max-width: 640px) {
+    .slide { padding: 24px 18px 60px; align-items: flex-start; padding-top: max(24px, env(safe-area-inset-top)); }
+    .slide-inner { padding-top: 24px; }
+    .counter { font-size: 11px; padding: 5px 8px; }
+    .nav-fab button { width: 36px; height: 36px; }
+  }
+
+  /* print */
+  @media print {
+    body { overflow: visible; background: white; color: black; }
+    .stage::before, .progress, .counter, .nav-fab, .modal { display: none !important; }
+    .deck { height: auto; width: auto; overflow: visible; }
+    .track { transform: none !important; flex-direction: column; height: auto; }
+    .slide { page-break-after: always; break-after: page; height: auto; min-height: 95vh; padding: 24px; align-items: flex-start; color: black; background: white; }
+    .slide-inner { max-width: 100%; }
+    .card, .card-hi { background: white; border: 1px solid #ccc; }
+    .body-lg, .body-md, .body-sm { color: #333; }
+    .accent, .h-eyebrow { color: #B53F12; }
+    .pulse-dot { animation: none; background: #B53F12; }
+    .phone { box-shadow: none; }
+  }
+</style>
+</head>
+
+<body class="stage">
+
+<a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-black focus:text-white focus:px-3 focus:py-2 focus:rounded">Skip to slides</a>
+
+<main id="main" class="deck" role="region" aria-roledescription="carousel" aria-label="LocalPulse pitch deck">
+  <div id="track" class="track" aria-live="polite">
+
+    <!-- 1. TITLE -->
+    <section class="slide" role="group" aria-roledescription="slide" aria-label="Slide 1: LocalPulse title">
+      <div class="slide-inner">
+        <div class="anim anim-1 pulse-mark mb-8">
+          <span class="pulse-dot" aria-hidden="true"></span>
+          <span>Pulse <span class="opacity-50">/</span> Capstone 2026</span>
+        </div>
+
+        <h1 class="anim anim-2 h-display mb-6">
+          Local<span class="accent">Pulse</span>.
+        </h1>
+
+        <p class="anim anim-3 body-lg max-w-2xl mb-10">
+          AI crisis management for small communities. Built for the slow phone, the bad internet, the small town.
+        </p>
+
+        <div class="anim anim-4 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl">
+          <div>
+            <div class="h-eyebrow mb-1.5">Author</div>
+            <div class="text-sm font-medium">Anshuman Mohanty</div>
+            <div class="body-sm">GF202217744</div>
+          </div>
+          <div>
+            <div class="h-eyebrow mb-1.5">Program</div>
+            <div class="text-sm font-medium">B.Tech CSE</div>
+            <div class="body-sm">Cloud Computing</div>
+          </div>
+          <div>
+            <div class="h-eyebrow mb-1.5">Mentor</div>
+            <div class="text-sm font-medium">Mr. Ashish</div>
+            <div class="body-sm">YSAICDS</div>
+          </div>
+          <div>
+            <div class="h-eyebrow mb-1.5">Year</div>
+            <div class="text-sm font-medium">2026</div>
+            <div class="body-sm">Shoolini University</div>
+          </div>
+        </div>
+
+        <div class="anim anim-5 mt-12 flex items-center gap-3 body-sm">
+          <span class="key">Space</span>
+          <span>or</span>
+          <span class="key">&rarr;</span>
+          <span>to begin</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. PROBLEM -->
+    <section class="slide" role="group" aria-roledescription="slide" aria-label="Slide 2: The Problem">
+      <div class="slide-inner">
+        <div class="anim anim-1 h-eyebrow mb-3">01 &mdash; The Problem</div>
+        <h2 class="anim anim-2 h-section mb-6 max-w-3xl">
+          When disaster hits a small town, <span class="accent">information is the second emergency</span>.
+        </h2>
+        <p class="anim anim-3 body-lg max-w-2xl mb-12">
+          Floods. Fires. Power outages. Residents and responders scroll through scattered, contradictory social posts while smart-city dashboards stay locked behind metro budgets.
+        </p>
+
+        <div class="anim anim-4 grid md:grid-cols-3 gap-4">
+          <div class="card p-6">
+            <svg class="w-7 h-7 mb-4 accent" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+            <div class="num-stat mb-2">78%</div>
+            <p class="body-md mb-1">of disaster info on social media in the first hour is unverified or misleading.</p>
+            <p class="text-xs text-mist-500 mt-3 opacity-60">Reuters Institute, 2024</p>
+          </div>
+          <div class="card p-6">
+            <svg class="w-7 h-7 mb-4 accent" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-4v4l3 2"/></svg>
+            <div class="num-stat mb-2">6&times;</div>
+            <p class="body-md mb-1">faster spread of rumours than corrections during local emergencies.</p>
+            <p class="text-xs text-mist-500 mt-3 opacity-60">MIT Sloan, 2018</p>
+          </div>
+          <div class="card p-6">
+            <svg class="w-7 h-7 mb-4 accent" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21V10l9-7 9 7v11M9 21v-6h6v6"/></svg>
+            <div class="num-stat mb-2">&lt;5%</div>
+            <p class="body-md mb-1">of Indian Tier-3 towns can afford commercial smart-city emergency software.</p>
+            <p class="text-xs text-mist-500 mt-3 opacity-60">NIUA, 2023</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. WHY NOW -->
+    <section class="slide" role="group" aria-roledescription="slide" aria-label="Slide 3: Why Now">
+      <div class="slide-inner">
+        <div class="anim anim-1 h-eyebrow mb-3">02 &mdash; Why Now</div>
+        <h2 class="anim anim-2 h-section mb-6 max-w-3xl">Four curves crossed. <span class="accent">In 2026, this finally works.</span></h2>
+        <p class="anim anim-3 body-lg max-w-2xl mb-12">A village-scale crisis dashboard would have been a wishlist three years ago. Today every ingredient is cheap, mature and API-shaped.</p>
+
+        <div class="anim anim-4 grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="card p-5">
+            <div class="flex items-center gap-2 mb-4">
+              <svg class="w-5 h-5 accent" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12c0-4.97 4.03-9 9-9 3.86 0 7.14 2.43 8.42 5.84M21 12c0 4.97-4.03 9-9 9-3.86 0-7.14-2.43-8.42-5.84M16 8h5V3M8 16H3v5"/></svg>
+              <div class="h-eyebrow text-mist-300">Climate</div>
+            </div>
+            <p class="font-display font-medium text-lg leading-snug mb-1.5">Disasters up 5&times; in 30 yrs.</p>
+            <p class="body-sm">Local emergencies are now monthly events, not generational ones.</p>
+          </div>
+          <div class="card p-5">
+            <div class="flex items-center gap-2 mb-4">
+              <svg class="w-5 h-5 accent" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M7 4h10v16H7zM12 18h.01"/></svg>
+              <div class="h-eyebrow text-mist-300">Reach</div>
+            </div>
+            <p class="font-display font-medium text-lg leading-snug mb-1.5">820M smartphones in India.</p>
+            <p class="body-sm">Even Tier-3 has a screen in every pocket and a 4G signal most of the day.</p>
+          </div>
+          <div class="card p-5">
+            <div class="flex items-center gap-2 mb-4">
+              <svg class="w-5 h-5 accent" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v3M8 21h8M5 6h14M7 6v8a5 5 0 0010 0V6"/></svg>
+              <div class="h-eyebrow text-mist-300">Voice AI</div>
+            </div>
+            <p class="font-display font-medium text-lg leading-snug mb-1.5">Whisper + GPT-4o ready.</p>
+            <p class="body-sm">Multilingual STT &amp; reasoning that actually understands Indian accents.</p>
+          </div>
+          <div class="card p-5">
+            <div class="flex items-center gap-2 mb-4">
+              <svg class="w-5 h-5 accent" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              <div class="h-eyebrow text-mist-300">Telephony</div>
+            </div>
+            <p class="font-display font-medium text-lg leading-snug mb-1.5">Twilio at &cent;&cent; per call.</p>
+            <p class="body-sm">A national helpline used to be crore-scale infra. Now it is a webhook.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. MEET LOCALPULSE -->
+    <section class="slide" role="group" aria-roledescription="slide" aria-label="Slide 4: Meet LocalPulse">
+      <div class="slide-inner">
+        <div class="grid md:grid-cols-2 gap-12 items-center">
+          <div>
+            <div class="anim anim-1 h-eyebrow mb-3">03 &mdash; Meet LocalPulse</div>
+            <h2 class="anim anim-2 h-section mb-6">A single, calm place to know <span class="accent">what is actually happening</span> in your town.</h2>
+            <p class="anim anim-3 body-lg mb-8">A mobile-first dashboard for residents and a verified situation board for responders &mdash; powered by an AI agent that reads the noise so humans don&rsquo;t have to.</p>
+            <ul class="anim anim-4 space-y-3 body-md">
+              <li class="flex items-start gap-3"><span class="mt-2 w-1.5 h-1.5 rounded-full bg-pulse-500 shrink-0"></span><span><b class="text-mist-100 font-medium">One status, not a thousand posts.</b> AI summary of roads, shelters, power.</span></li>
+              <li class="flex items-start gap-3"><span class="mt-2 w-1.5 h-1.5 rounded-full bg-pulse-500 shrink-0"></span><span><b class="text-mist-100 font-medium">A phone number, not an app store.</b> Elderly call in, in their language.</span></li>
+              <li class="flex items-start gap-3"><span class="mt-2 w-1.5 h-1.5 rounded-full bg-pulse-500 shrink-0"></span><span><b class="text-mist-100 font-medium">Free at idle.</b> Cloud Run scale-to-zero. Towns pay zero on a quiet day.</span></li>
+            </ul>
+          </div>
+
+          <div class="anim anim-3 flex justify-center">
+            <div class="phone" aria-hidden="true">
+              <div class="phone-screen">
+                <div class="status-row"><span>9:41</span><span class="flex items-center gap-1"><span class="dot"></span> LIVE</span></div>
+                <div class="px-3.5 pt-2">
+                  <div class="pulse-mark text-[10px] mb-2"><span class="pulse-dot"></span><span>LocalPulse</span></div>
+                  <div class="text-[11px] text-mist-300 mb-1">Solan, HP</div>
+                  <div class="font-display font-semibold text-base leading-tight mb-3">Flood watch <span class="text-pulse-500">active</span></div>
+                  <div class="space-y-2">
+                    <div class="rounded-lg border border-white/10 p-2.5">
+                      <div class="text-[10px] text-pulse-500 mb-0.5">ROADS</div>
+                      <div class="text-[11px] leading-snug">NH-5 closed near Salogra. Detour via Kandaghat.</div>
+                    </div>
+                    <div class="rounded-lg border border-white/10 p-2.5">
+                      <div class="text-[10px] text-pulse-500 mb-0.5">SHELTER</div>
+                      <div class="text-[11px] leading-snug">Govt. School, Sec-2 open. Capacity 120.</div>
+                    </div>
+                    <div class="rounded-lg border border-white/10 p-2.5">
+                      <div class="text-[10px] text-pulse-500 mb-0.5">POWER</div>
+                      <div class="text-[11px] leading-snug">Restored in Anhech. Patchy in Chambaghat.</div>
+                    </div>
+                  </div>
+                  <div class="mt-3 rounded-lg bg-pulse-500/15 border border-pulse-500/30 p-2.5 text-[11px]">
+                    <div class="font-medium text-pulse-300">Tap to call helpline</div>
+                    <div class="text-[10px] text-mist-300">Hindi &middot; Punjabi &middot; English</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. HOW IT WORKS -->
+    <section class="slide" role="group" aria-roledescription="slide" aria-label="Slide 5: How It Works">
+      <div class="slide-inner">
+        <div class="anim anim-1 h-eyebrow mb-3">04 &mdash; How It Works</div>
+        <h2 class="anim anim-2 h-section mb-12 max-w-3xl">Three steps. <span class="accent">No magic, just discipline.</span></h2>
+
+        <div class="grid md:grid-cols-3 gap-5">
+          <div class="anim anim-3 card-hi p-7 relative">
+            <div class="absolute top-5 right-5 font-display text-5xl font-semibold text-white/5">01</div>
+            <svg class="w-7 h-7 mb-5 accent" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 1.5a10.5 10.5 0 100 21 10.5 10.5 0 000-21zM12 7v5l3 2"/></svg>
+            <div class="font-display font-semibold text-xl mb-2">Residents report</div>
+            <p class="body-sm">App tap, web form, or a phone call in any language. Geotagged automatically. No login required for emergencies.</p>
+          </div>
+          <div class="anim anim-4 card-hi p-7 relative">
+            <div class="absolute top-5 right-5 font-display text-5xl font-semibold text-white/5">02</div>
+            <svg class="w-7 h-7 mb-5 accent" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 4.5v15m6-15v15M4.5 9h15m-15 6h15"/></svg>
+            <div class="font-display font-semibold text-xl mb-2">AI agent ingests</div>
+            <p class="body-sm">Pulls public Twitter/X &amp; Reddit. Dedupes, classifies, clusters by category and locality. Cross-checks with citizen reports.</p>
+          </div>
+          <div class="anim anim-5 card-hi p-7 relative">
+            <div class="absolute top-5 right-5 font-display text-5xl font-semibold text-white/5">03</div>
+            <svg class="w-7 h-7 mb-5 accent" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2 4 4 8-8 4 4"/></svg>
+            <div class="font-display font-semibold text-xl mb-2">Dashboard surfaces</div>
+            <p class="body-sm">Verified status only. Map for responders, plain-language card for residents. Stale = subtly indicated, never hidden.</p>
+          </div>
+        </div>
+
+        <div class="anim anim-5 mt-10 card p-5 flex flex-wrap items-center gap-x-8 gap-y-2 body-sm">
+          <span class="h-eyebrow !text-mist-300">Pipeline</span>
+          <span>Citizen + Social</span>
+          <span class="text-pulse-500">&rarr;</span>
+          <span>Filter &amp; Cluster</span>
+          <span class="text-pulse-500">&rarr;</span>
+          <span>Cross-verify</span>
+          <span class="text-pulse-500">&rarr;</span>
+          <span>Status Card</span>
+          <span class="text-pulse-500">&rarr;</span>
+          <span class="text-mist-100">Resident &amp; Responder</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. FEATURE 1 -->
+    <section class="slide" role="group" aria-roledescription="slide" aria-label="Slide 6: AI Social Summary">
+      <div class="slide-inner">
+        <div class="grid lg:grid-cols-5 gap-10 items-center">
+          <div class="lg:col-span-3">
+            <div class="anim anim-1 h-eyebrow mb-3">05 &mdash; Feature 01</div>
+            <h2 class="anim anim-2 h-section mb-5">AI Social Summary.</h2>
+            <p class="anim anim-3 body-lg mb-8 max-w-xl">A small, local NLP agent reads the noise &mdash; Twitter, Reddit, citizen reports &mdash; and writes a single, calm <span class="text-mist-100">Status Summary</span> per locality.</p>
+
+            <div class="anim anim-4 grid grid-cols-5 gap-2 mb-6">
+              <div class="card px-3 py-3 text-center">
+                <svg class="w-5 h-5 mx-auto mb-1.5 accent" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 19l16-7L4 5v6l8 1-8 1v6z"/></svg>
+                <div class="text-[11px] font-medium">Scrape</div>
+              </div>
+              <div class="card px-3 py-3 text-center">
+                <svg class="w-5 h-5 mx-auto mb-1.5 accent" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+                <div class="text-[11px] font-medium">Dedupe</div>
+              </div>
+              <div class="card px-3 py-3 text-center">
+                <svg class="w-5 h-5 mx-auto mb-1.5 accent" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18M6 12h12M9 17h6"/></svg>
+                <div class="text-[11px] font-medium">Classify</div>
+              </div>
+              <div class="card px-3 py-3 text-center">
+                <svg class="w-5 h-5 mx-auto mb-1.5 accent" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8a3 3 0 116 0 3 3 0 01-6 0zm8 8a3 3 0 116 0 3 3 0 01-6 0zM7 11l9 3"/></svg>
+                <div class="text-[11px] font-medium">Cluster</div>
+              </div>
+              <div class="card px-3 py-3 text-center bg-pulse-500/10 border-pulse-500/40">
+                <svg class="w-5 h-5 mx-auto mb-1.5 accent" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h10M4 18h16"/></svg>
+                <div class="text-[11px] font-medium accent">Summarize</div>
+              </div>
+            </div>
+
+            <p class="anim anim-5 body-sm">Each link in the chain is replaceable &mdash; OSS first, hosted models second. No vendor lock-in.</p>
+          </div>
+
+          <div class="lg:col-span-2 anim anim-4">
+            <div class="card p-5">
+              <div class="h-eyebrow mb-3">Categories tracked</div>
+              <ul class="space-y-2.5">
+                <li class="flex items-center gap-3 body-md text-mist-100"><span class="w-1.5 h-1.5 rounded-full bg-pulse-500"></span> Roads &amp; transit</li>
+                <li class="flex items-center gap-3 body-md text-mist-100"><span class="w-1.5 h-1.5 rounded-full bg-pulse-500"></span> Shelters &amp; relief camps</li>
+                <li class="flex items-center gap-3 body-md text-mist-100"><span class="w-1.5 h-1.5 rounded-full bg-pulse-500"></span> Power &amp; communication</li>
+                <li class="flex items-center gap-3 body-md text-mist-100"><span class="w-1.5 h-1.5 rounded-full bg-pulse-500"></span> Water &amp; supply</li>
+                <li class="flex items-center gap-3 body-md text-mist-100"><span class="w-1.5 h-1.5 rounded-full bg-pulse-500"></span> Medical &amp; rescue</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. FEATURE 2 -->
+    <section class="slide" role="group" aria-roledescription="slide" aria-label="Slide 7: Multilingual Voice Bot">
+      <div class="slide-inner">
+        <div class="anim anim-1 h-eyebrow mb-3">06 &mdash; Feature 02</div>
+        <h2 class="anim anim-2 h-section mb-5 max-w-3xl">Multilingual Voice Bot.</h2>
+        <p class="anim anim-3 body-lg mb-10 max-w-2xl">A phone number that speaks five languages and never sleeps. The grandmother in the village calls in Tamil. The dashboard updates in seconds.</p>
+
+        <!-- call flow -->
+        <div class="anim anim-4 card p-5 md:p-6 mb-8">
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-3 items-center">
+            <div class="text-center">
+              <div class="w-12 h-12 mx-auto rounded-full border border-white/15 flex items-center justify-center mb-2">
+                <svg class="w-5 h-5 accent" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h2l2 4-2 1a11 11 0 005 5l1-2 4 2v2a2 2 0 01-2 2A14 14 0 013 5z"/></svg>
+              </div>
+              <div class="text-[11px] font-medium">Caller</div>
+              <div class="text-[10px] text-mist-400">any phone</div>
+            </div>
+            <div class="hidden md:block conn"></div>
+            <div class="text-center hidden md:block"></div>
+            <div class="text-center">
+              <div class="w-12 h-12 mx-auto rounded-full border border-white/15 flex items-center justify-center mb-2">
+                <svg class="w-5 h-5 accent" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4h16v16H4zM8 4v16M4 8h4"/></svg>
+              </div>
+              <div class="text-[11px] font-medium">Twilio</div>
+              <div class="text-[10px] text-mist-400">SIP &rarr; webhook</div>
+            </div>
+            <div class="hidden md:block conn"></div>
+            <div class="text-center">
+              <div class="w-12 h-12 mx-auto rounded-full border border-white/15 flex items-center justify-center mb-2">
+                <svg class="w-5 h-5 accent" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 1.5v6m0 9v6m9-7.5h-6m-9 0H1.5m15.36-6.36l-4.24 4.24m-4.24 4.24l-4.24 4.24m12.72 0l-4.24-4.24m-4.24-4.24L4.14 5.14"/></svg>
+              </div>
+              <div class="text-[11px] font-medium">Whisper STT</div>
+              <div class="text-[10px] text-mist-400">multi-lingual</div>
+            </div>
+            <div class="hidden md:block conn"></div>
+            <div class="text-center">
+              <div class="w-12 h-12 mx-auto rounded-full border border-white/15 flex items-center justify-center mb-2">
+                <svg class="w-5 h-5 accent" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9 9 0 100-18 9 9 0 000 18zM3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></svg>
+              </div>
+              <div class="text-[11px] font-medium">LLM</div>
+              <div class="text-[10px] text-mist-400">classify &amp; reply</div>
+            </div>
+            <div class="hidden md:block conn"></div>
+            <div class="text-center">
+              <div class="w-12 h-12 mx-auto rounded-full border border-pulse-500/40 bg-pulse-500/10 flex items-center justify-center mb-2">
+                <svg class="w-5 h-5 accent" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4zm5 2a5 5 0 010 10m3-13a9 9 0 010 16"/></svg>
+              </div>
+              <div class="text-[11px] font-medium accent">TTS reply</div>
+              <div class="text-[10px] text-mist-400">caller&rsquo;s language</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="anim anim-5">
+          <div class="h-eyebrow mb-3">Day-one languages</div>
+          <div class="flex flex-wrap gap-2.5">
+            <span class="card px-4 py-2 text-sm"><span class="font-display text-base mr-2">हिन्दी</span> <span class="text-mist-400 text-xs">Hindi</span></span>
+            <span class="card px-4 py-2 text-sm"><span class="font-display text-base mr-2">ਪੰਜਾਬੀ</span> <span class="text-mist-400 text-xs">Punjabi</span></span>
+            <span class="card px-4 py-2 text-sm"><span class="font-display text-base mr-2">தமிழ்</span> <span class="text-mist-400 text-xs">Tamil</span></span>
+            <span class="card px-4 py-2 text-sm"><span class="font-display text-base mr-2">বাংলা</span> <span class="text-mist-400 text-xs">Bengali</span></span>
+            <span class="card px-4 py-2 text-sm"><span class="font-display text-base mr-2">English</span></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. ARCHITECTURE -->
+    <section class="slide" role="group" aria-roledescription="slide" aria-label="Slide 8: Architecture">
+      <div class="slide-inner">
+        <div class="anim anim-1 h-eyebrow mb-3">07 &mdash; Architecture</div>
+        <h2 class="anim anim-2 h-section mb-10 max-w-3xl">One container. <span class="accent">Zero idle cost.</span> Sovereign by default.</h2>
+
+        <div class="grid lg:grid-cols-3 gap-5 mb-6">
+          <div class="anim anim-3 card p-5">
+            <div class="h-eyebrow mb-3">Runtime</div>
+            <ul class="space-y-2 body-sm">
+              <li><span class="text-mist-100 font-medium">Cloud Run</span> &middot; asia-east1</li>
+              <li>0 CPU min &middot; scale-to-zero</li>
+              <li>Node.js 20 &middot; Express</li>
+              <li>Single container, single deploy</li>
+            </ul>
+          </div>
+          <div class="anim anim-4 card p-5">
+            <div class="h-eyebrow mb-3">Frontend</div>
+            <ul class="space-y-2 body-sm">
+              <li><span class="text-mist-100 font-medium">Tailwind</span> via CDN</li>
+              <li>Leaflet for the map</li>
+              <li>Web Speech API in-browser demo</li>
+              <li>Static, hardcoded JSON (MLP)</li>
+            </ul>
+          </div>
+          <div class="anim anim-5 card p-5">
+            <div class="h-eyebrow mb-3">Edge</div>
+            <ul class="space-y-2 body-sm">
+              <li><span class="text-mist-100 font-medium">localpulse.dmj.one</span></li>
+              <li>HTTPS only &middot; HSTS &middot; TLS 1.3</li>
+              <li>/pitch &middot; /report &middot; /responder &middot; /voice</li>
+              <li>Custom domain via dmj.one</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="anim anim-5 card-hi p-5">
+          <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <div class="h-eyebrow mb-1.5">Compliance</div>
+              <p class="body-sm">DPDP Act 2023 &amp; GDPR aligned. Consent explicit, granular, revocable.</p>
+            </div>
+            <div>
+              <div class="h-eyebrow mb-1.5">Data Sovereignty</div>
+              <p class="body-sm">India data stays in India. asia-* regions only.</p>
+            </div>
+            <div>
+              <div class="h-eyebrow mb-1.5">At Rest</div>
+              <p class="body-sm">AES-256-GCM. PII never in logs, errors, URLs.</p>
+            </div>
+            <div>
+              <div class="h-eyebrow mb-1.5">In Transit</div>
+              <p class="body-sm">TLS 1.3. CSP, CORS, SRI strict from day one.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. MOBILE-FIRST DEMO -->
+    <section class="slide" role="group" aria-roledescription="slide" aria-label="Slide 9: Mobile-first demo">
+      <div class="slide-inner">
+        <div class="anim anim-1 h-eyebrow mb-3">08 &mdash; Demo</div>
+        <h2 class="anim anim-2 h-section mb-10 max-w-3xl">Mobile-first, every screen. <span class="accent">Three users, one system.</span></h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 justify-items-center">
+          <!-- Resident -->
+          <div class="anim anim-3 text-center">
+            <div class="phone mb-4" aria-hidden="true">
+              <div class="phone-screen">
+                <div class="status-row"><span>9:41</span><span class="flex items-center gap-1"><span class="dot"></span> LIVE</span></div>
+                <div class="px-3 pt-2">
+                  <div class="text-[10px] h-eyebrow mb-1">Resident</div>
+                  <div class="font-display font-semibold text-sm leading-tight mb-2">What&rsquo;s open near me?</div>
+                  <div class="space-y-1.5">
+                    <div class="rounded-md border border-white/10 p-2 text-[10px]"><span class="accent">ROAD</span> &middot; NH-5 closed</div>
+                    <div class="rounded-md border border-white/10 p-2 text-[10px]"><span class="accent">SHELTER</span> &middot; Govt. School open</div>
+                    <div class="rounded-md border border-white/10 p-2 text-[10px]"><span class="accent">POWER</span> &middot; Patchy in C&rsquo;ghat</div>
+                  </div>
+                  <button class="mt-3 w-full rounded-md bg-pulse-500 text-white text-[11px] font-medium py-1.5">Report an issue</button>
+                </div>
+              </div>
+            </div>
+            <div class="font-display font-medium text-sm">Resident</div>
+            <div class="body-sm">/report</div>
+          </div>
+
+          <!-- Responder -->
+          <div class="anim anim-4 text-center">
+            <div class="phone mb-4" aria-hidden="true">
+              <div class="phone-screen">
+                <div class="status-row"><span>9:41</span><span class="flex items-center gap-1"><span class="dot"></span> OPS</span></div>
+                <div class="px-3 pt-2">
+                  <div class="text-[10px] h-eyebrow mb-1">Responder</div>
+                  <div class="font-display font-semibold text-sm leading-tight mb-2">Solan &middot; 14 active</div>
+                  <div class="rounded-md border border-white/10 h-20 mb-2 relative overflow-hidden bg-gradient-to-br from-ink-700 to-ink-850">
+                    <span class="absolute top-3 left-3 w-2 h-2 bg-pulse-500 rounded-full shadow-[0_0_8px_#FF6B35]"></span>
+                    <span class="absolute top-8 left-8 w-1.5 h-1.5 bg-pulse-300 rounded-full"></span>
+                    <span class="absolute bottom-5 right-5 w-2 h-2 bg-pulse-500 rounded-full"></span>
+                    <span class="absolute bottom-2 left-10 w-1.5 h-1.5 bg-pulse-300 rounded-full"></span>
+                  </div>
+                  <div class="space-y-1.5">
+                    <div class="rounded-md border border-pulse-500/40 bg-pulse-500/10 p-2 text-[10px]">P1 &middot; Stranded x4 &middot; Salogra</div>
+                    <div class="rounded-md border border-white/10 p-2 text-[10px]">P2 &middot; Tree fall &middot; Anhech</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="font-display font-medium text-sm">Responder</div>
+            <div class="body-sm">/responder</div>
+          </div>
+
+          <!-- Voice -->
+          <div class="anim anim-5 text-center">
+            <div class="phone mb-4" aria-hidden="true">
+              <div class="phone-screen">
+                <div class="status-row"><span>9:41</span><span class="flex items-center gap-1"><span class="dot"></span> CALL</span></div>
+                <div class="px-3 pt-2">
+                  <div class="text-[10px] h-eyebrow mb-1">Voice line</div>
+                  <div class="font-display font-semibold text-sm leading-tight mb-3">हिन्दी &middot; में बोलें</div>
+                  <div class="rounded-md border border-white/10 p-2 mb-2 text-[10px] leading-snug">
+                    &ldquo;पानी कब आएगा?&rdquo;
+                  </div>
+                  <div class="rounded-md border border-pulse-500/40 bg-pulse-500/10 p-2 text-[10px] leading-snug mb-3">
+                    &ldquo;अनहेच में 2 घंटे में, चंबाघाट कल सुबह।&rdquo;
+                  </div>
+                  <div class="flex justify-center mb-1">
+                    <div class="w-12 h-12 rounded-full bg-pulse-500/20 border border-pulse-500/50 flex items-center justify-center">
+                      <span class="w-3 h-3 rounded-full bg-pulse-500 animate-pulse"></span>
+                    </div>
+                  </div>
+                  <div class="text-[10px] text-mist-400">Tap to speak</div>
+                </div>
+              </div>
+            </div>
+            <div class="font-display font-medium text-sm">Voice</div>
+            <div class="body-sm">/voice</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. WHY IT WORKS FOR SMALL TOWNS -->
+    <section class="slide" role="group" aria-roledescription="slide" aria-label="Slide 10: Why It Works for Small Towns">
+      <div class="slide-inner">
+        <div class="anim anim-1 h-eyebrow mb-3">09 &mdash; Built for Bharat</div>
+        <h2 class="anim anim-2 h-section mb-10 max-w-3xl">Why it works <span class="accent">where others don&rsquo;t</span>.</h2>
+
+        <div class="grid md:grid-cols-2 gap-5">
+          <div class="anim anim-3 card p-6">
+            <div class="flex items-start gap-4">
+              <svg class="w-8 h-8 accent shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M7 4h10v16H7zM12 18h.01M9 4l1-1h4l1 1"/></svg>
+              <div>
+                <div class="font-display font-semibold text-lg mb-1.5">Slow phone, bad internet.</div>
+                <p class="body-sm">Static frontend, hardcoded fallback JSON, offline-first cache on roadmap. Loads on a Jio 4G blip.</p>
+              </div>
+            </div>
+          </div>
+          <div class="anim anim-3 card p-6">
+            <div class="flex items-start gap-4">
+              <svg class="w-8 h-8 accent shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-2 0-3 1-3 3 0 4 6 4 6 8M12 4v2m0 12v2"/></svg>
+              <div>
+                <div class="font-display font-semibold text-lg mb-1.5">~&#8377;0 / month at idle.</div>
+                <p class="body-sm">Cloud Run scale-to-zero, free tier covers low-traffic days. Towns pay only when there is an emergency.</p>
+              </div>
+            </div>
+          </div>
+          <div class="anim anim-4 card p-6">
+            <div class="flex items-start gap-4">
+              <svg class="w-8 h-8 accent shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 12h14M5 16h14M3 4h18"/></svg>
+              <div>
+                <div class="font-display font-semibold text-lg mb-1.5">Multilingual day one.</div>
+                <p class="body-sm">Hindi, Punjabi, Tamil, Bengali, English. Native script, native voice. Devanagari and Tamil tested in CI.</p>
+              </div>
+            </div>
+          </div>
+          <div class="anim anim-4 card p-6">
+            <div class="flex items-start gap-4">
+              <svg class="w-8 h-8 accent shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h2l2 4-2 1a11 11 0 005 5l1-2 4 2v2a2 2 0 01-2 2A14 14 0 013 5z"/></svg>
+              <div>
+                <div class="font-display font-semibold text-lg mb-1.5">Voice-first for elders.</div>
+                <p class="body-sm">A phone call, not an app. The most-isolated user is the first-class user.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11. ROADMAP -->
+    <section class="slide" role="group" aria-roledescription="slide" aria-label="Slide 11: Roadmap">
+      <div class="slide-inner">
+        <div class="anim anim-1 h-eyebrow mb-3">10 &mdash; Roadmap</div>
+        <h2 class="anim anim-2 h-section mb-10 max-w-3xl">Ship the MLP. <span class="accent">Then ship Bharat.</span></h2>
+
+        <div class="relative">
+          <div class="absolute left-4 sm:left-1/2 top-2 bottom-2 w-px bg-white/10" aria-hidden="true"></div>
+
+          <div class="anim anim-3 grid sm:grid-cols-2 gap-x-12 mb-8">
+            <div class="sm:text-right sm:pr-10 pl-12 sm:pl-0 relative">
+              <div class="absolute sm:right-[-7px] left-1 sm:left-auto top-1.5 w-3.5 h-3.5 rounded-full bg-pulse-500 border-2 border-ink-900 shadow-[0_0_14px_#FF6B35]"></div>
+              <div class="h-eyebrow mb-1">Today &middot; MLP</div>
+              <div class="font-display font-semibold text-lg mb-1">Live on Cloud Run</div>
+              <p class="body-sm sm:ml-auto sm:max-w-xs">Mock data, single region, hardcoded JSON, browser-based voice demo. localpulse.dmj.one.</p>
+            </div>
+            <div></div>
+          </div>
+
+          <div class="anim anim-3 grid sm:grid-cols-2 gap-x-12 mb-8">
+            <div></div>
+            <div class="sm:pl-10 pl-12 relative">
+              <div class="absolute sm:left-[-7px] left-1 top-1.5 w-3.5 h-3.5 rounded-full bg-pulse-300 border-2 border-ink-900"></div>
+              <div class="h-eyebrow mb-1">Q1 2026</div>
+              <div class="font-display font-semibold text-lg mb-1">Real ingestion</div>
+              <p class="body-sm sm:max-w-xs">Twitter/X &amp; Reddit scrapers, Twilio voice line live, Firestore for state, anomaly alerts.</p>
+            </div>
+          </div>
+
+          <div class="anim anim-4 grid sm:grid-cols-2 gap-x-12 mb-8">
+            <div class="sm:text-right sm:pr-10 pl-12 sm:pl-0 relative">
+              <div class="absolute sm:right-[-7px] left-1 sm:left-auto top-1.5 w-3.5 h-3.5 rounded-full bg-pulse-300 border-2 border-ink-900"></div>
+              <div class="h-eyebrow mb-1">Q2 2026</div>
+              <div class="font-display font-semibold text-lg mb-1">Bharat-wide</div>
+              <p class="body-sm sm:ml-auto sm:max-w-xs">12+ Indian languages, district-level rollout, partnership pilot with a state DMA.</p>
+            </div>
+            <div></div>
+          </div>
+
+          <div class="anim anim-5 grid sm:grid-cols-2 gap-x-12">
+            <div></div>
+            <div class="sm:pl-10 pl-12 relative">
+              <div class="absolute sm:left-[-7px] left-1 top-1.5 w-3.5 h-3.5 rounded-full bg-white/40 border-2 border-ink-900"></div>
+              <div class="h-eyebrow mb-1">Q3 2026</div>
+              <div class="font-display font-semibold text-lg mb-1">Off-grid</div>
+              <p class="body-sm sm:max-w-xs">Offline-first PWA, satellite SMS fallback, on-device summarisation for &lt;100MB phones.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12. KPIs -->
+    <section class="slide" role="group" aria-roledescription="slide" aria-label="Slide 12: KPIs and Impact">
+      <div class="slide-inner">
+        <div class="anim anim-1 h-eyebrow mb-3">11 &mdash; Impact &middot; KPIs</div>
+        <h2 class="anim anim-2 h-section mb-10 max-w-3xl">What good looks like. <span class="accent">Measured, not promised.</span></h2>
+
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div class="anim anim-3 card-hi p-5">
+            <div class="num-stat accent mb-1">&lt;30s</div>
+            <div class="text-[11px] h-eyebrow !text-mist-300 mb-1">Onboarding</div>
+            <p class="body-sm">From URL to first useful screen.</p>
+          </div>
+          <div class="anim anim-3 card-hi p-5">
+            <div class="num-stat accent mb-1">&lt;2.5s</div>
+            <div class="text-[11px] h-eyebrow !text-mist-300 mb-1">LCP</div>
+            <p class="body-sm">Core Web Vitals, measured in CI.</p>
+          </div>
+          <div class="anim anim-4 card-hi p-5">
+            <div class="num-stat accent mb-1">&lt;200<span class="text-2xl">ms</span></div>
+            <div class="text-[11px] h-eyebrow !text-mist-300 mb-1">p95 API</div>
+            <p class="body-sm">Server response, server side.</p>
+          </div>
+          <div class="anim anim-4 card-hi p-5">
+            <div class="num-stat accent mb-1">4+</div>
+            <div class="text-[11px] h-eyebrow !text-mist-300 mb-1">Languages</div>
+            <p class="body-sm">Day-one. Hindi, Punjabi, Tamil, Bengali.</p>
+          </div>
+          <div class="anim anim-5 card-hi p-5">
+            <div class="num-stat accent mb-1">&#8377;0</div>
+            <div class="text-[11px] h-eyebrow !text-mist-300 mb-1">Idle cost</div>
+            <p class="body-sm">Scale-to-zero on Cloud Run.</p>
+          </div>
+        </div>
+
+        <p class="anim anim-5 mt-10 body-sm max-w-2xl">Targets are budgets &mdash; if a change blows the budget, the change reverts. CI fails the build before the user ever feels it.</p>
+      </div>
+    </section>
+
+    <!-- 13. MISSION -->
+    <section class="slide" role="group" aria-roledescription="slide" aria-label="Slide 13: Mission">
+      <div class="slide-inner text-center">
+        <div class="anim anim-1 pulse-mark justify-center mb-10">
+          <span class="pulse-dot" aria-hidden="true"></span>
+          <span>Mission</span>
+        </div>
+        <h2 class="anim anim-2 h-display mb-8 leading-[1.05]">
+          <span class="accent">#AatmanirbharBharat</span><br/>
+          <span class="text-mist-100">@India2047.</span>
+        </h2>
+        <p class="anim anim-3 body-lg max-w-2xl mx-auto">Built for the slow phone, the bad internet, the small town. If it works there, it works everywhere.</p>
+
+        <div class="anim anim-4 mt-12 flex justify-center">
+          <div class="card px-6 py-4 text-sm body-md italic max-w-lg">
+            &ldquo;Dream, manifest and journey, together as one.&rdquo;
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 14. THANK YOU -->
+    <section class="slide" role="group" aria-roledescription="slide" aria-label="Slide 14: Thank you and links">
+      <div class="slide-inner">
+        <div class="anim anim-1 h-eyebrow mb-3">14 &mdash; Thank you</div>
+        <h2 class="anim anim-2 h-display mb-8">Questions?</h2>
+        <p class="anim anim-3 body-lg max-w-xl mb-12">LocalPulse is live. Open the URL on your phone, call the demo line, or read the code. Everything below is real.</p>
+
+        <div class="anim anim-4 grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-10">
+          <a href="https://localpulse.dmj.one" class="card-hi p-5 hover:border-pulse-500/60 transition-colors block group" target="_blank" rel="noopener">
+            <div class="h-eyebrow mb-2">Live</div>
+            <div class="font-display font-medium text-base group-hover:text-pulse-500">localpulse.dmj.one</div>
+          </a>
+          <a href="https://localpulse.dmj.one/report" class="card-hi p-5 hover:border-pulse-500/60 transition-colors block group" target="_blank" rel="noopener">
+            <div class="h-eyebrow mb-2">Resident</div>
+            <div class="font-display font-medium text-base group-hover:text-pulse-500">/report</div>
+          </a>
+          <a href="https://localpulse.dmj.one/responder" class="card-hi p-5 hover:border-pulse-500/60 transition-colors block group" target="_blank" rel="noopener">
+            <div class="h-eyebrow mb-2">Ops</div>
+            <div class="font-display font-medium text-base group-hover:text-pulse-500">/responder</div>
+          </a>
+          <a href="https://localpulse.dmj.one/voice" class="card-hi p-5 hover:border-pulse-500/60 transition-colors block group" target="_blank" rel="noopener">
+            <div class="h-eyebrow mb-2">Voice demo</div>
+            <div class="font-display font-medium text-base group-hover:text-pulse-500">/voice</div>
+          </a>
+        </div>
+
+        <div class="anim anim-5 grid sm:grid-cols-3 gap-6 pt-8 border-t border-white/5">
+          <div>
+            <div class="h-eyebrow mb-1.5">Author</div>
+            <div class="text-sm font-medium text-mist-100">Anshuman Mohanty</div>
+            <div class="body-sm">GF202217744 &middot; B.Tech CSE (Cloud)</div>
+          </div>
+          <div>
+            <div class="h-eyebrow mb-1.5">Mentor</div>
+            <div class="text-sm font-medium text-mist-100">Mr. Ashish</div>
+            <div class="body-sm">YSAICDS, Shoolini University</div>
+          </div>
+          <div>
+            <div class="h-eyebrow mb-1.5">Contact</div>
+            <div class="text-sm font-medium text-mist-100">contact@dmj.one</div>
+            <div class="body-sm">github.com/dmj-one/localpulse</div>
+          </div>
+        </div>
+
+        <div class="anim anim-5 mt-10 pulse-mark">
+          <span class="pulse-dot" aria-hidden="true"></span>
+          <span>End of deck &middot; press <span class="key">Home</span> to restart</span>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<!-- chrome -->
+<div class="progress" role="presentation"><div id="bar" class="progress-bar"></div></div>
+<div class="counter" aria-live="polite"><b id="cur">01</b> <span class="opacity-60">/</span> <span id="tot">14</span></div>
+<div class="nav-fab" role="group" aria-label="Slide navigation">
+  <button id="prev" type="button" aria-label="Previous slide">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6"/></svg>
+  </button>
+  <button id="next" type="button" aria-label="Next slide">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 6l6 6-6 6"/></svg>
+  </button>
+  <button id="help" type="button" aria-label="Keyboard shortcuts">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9.5 9a2.5 2.5 0 115 0c0 1.5-2.5 2-2.5 4M12 17h.01"/></svg>
+  </button>
+</div>
+
+<!-- keybind modal -->
+<div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+  <div class="modal-card">
+    <div class="flex items-center justify-between mb-4">
+      <div id="modal-title" class="font-display font-semibold text-lg">Keyboard shortcuts</div>
+      <button id="closeModal" aria-label="Close" class="w-7 h-7 inline-flex items-center justify-center rounded-md border border-white/10 hover:border-pulse-500 hover:text-pulse-500">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <ul class="space-y-2.5 text-sm">
+      <li class="flex items-center justify-between"><span class="text-mist-300">Next slide</span><span><span class="key">&rarr;</span> <span class="key">Space</span> <span class="key">PgDn</span></span></li>
+      <li class="flex items-center justify-between"><span class="text-mist-300">Previous slide</span><span><span class="key">&larr;</span> <span class="key">PgUp</span></span></li>
+      <li class="flex items-center justify-between"><span class="text-mist-300">First slide</span><span class="key">Home</span></li>
+      <li class="flex items-center justify-between"><span class="text-mist-300">Last slide</span><span class="key">End</span></li>
+      <li class="flex items-center justify-between"><span class="text-mist-300">Toggle fullscreen</span><span class="key">F</span></li>
+      <li class="flex items-center justify-between"><span class="text-mist-300">This help</span><span class="key">?</span></li>
+    </ul>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var track   = document.getElementById('track');
+  var slides  = Array.prototype.slice.call(track.querySelectorAll('.slide'));
+  var bar     = document.getElementById('bar');
+  var curEl   = document.getElementById('cur');
+  var totEl   = document.getElementById('tot');
+  var modal   = document.getElementById('modal');
+  var prevBtn = document.getElementById('prev');
+  var nextBtn = document.getElementById('next');
+  var helpBtn = document.getElementById('help');
+  var closeM  = document.getElementById('closeModal');
+
+  var index = 0;
+  var total = slides.length;
+  totEl.textContent = String(total).padStart(2, '0');
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function go(i) {
+    index = Math.max(0, Math.min(total - 1, i));
+    track.style.transform = 'translateX(-' + (index * 100) + '%)';
+    slides.forEach(function (s, k) {
+      s.classList.toggle('is-active', k === index);
+      s.setAttribute('aria-hidden', k === index ? 'false' : 'true');
+    });
+    bar.style.width = ((index + 1) / total * 100) + '%';
+    curEl.textContent = pad(index + 1);
+    try {
+      var url = new URL(window.location.href);
+      url.hash = 's' + (index + 1);
+      window.history.replaceState(null, '', url.toString());
+    } catch (e) {}
+  }
+  function next() { go(index + 1); }
+  function prev() { go(index - 1); }
+
+  // initial slide from hash
+  var m = (window.location.hash || '').match(/^#s(\d+)$/);
+  if (m) { go(Math.max(0, Math.min(total - 1, parseInt(m[1], 10) - 1))); }
+  else   { go(0); }
+
+  // keyboard
+  function isModalOpen() { return modal.classList.contains('open'); }
+  function openModal()  { modal.classList.add('open'); modal.removeAttribute('hidden'); closeM.focus(); }
+  function closeModal() { modal.classList.remove('open'); modal.setAttribute('hidden', ''); helpBtn.focus(); }
+
+  document.addEventListener('keydown', function (e) {
+    if (isModalOpen()) {
+      if (e.key === 'Escape') { e.preventDefault(); closeModal(); }
+      return;
+    }
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'PageDown':
+      case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft':
+      case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home':
+        e.preventDefault(); go(0); break;
+      case 'End':
+        e.preventDefault(); go(total - 1); break;
+      case 'f':
+      case 'F':
+        e.preventDefault();
+        if (!document.fullscreenElement) { document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+        else { document.exitFullscreen && document.exitFullscreen(); }
+        break;
+      case '?':
+      case '/':
+        e.preventDefault(); openModal(); break;
+    }
+  });
+
+  prevBtn.addEventListener('click', prev);
+  nextBtn.addEventListener('click', next);
+  helpBtn.addEventListener('click', openModal);
+  closeM.addEventListener('click', closeModal);
+  modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
+
+  // touch swipe
+  var touchX = null, touchY = null, touchT = 0;
+  track.addEventListener('touchstart', function (e) {
+    if (!e.touches || !e.touches[0]) return;
+    touchX = e.touches[0].clientX;
+    touchY = e.touches[0].clientY;
+    touchT = Date.now();
+  }, { passive: true });
+  track.addEventListener('touchend', function (e) {
+    if (touchX === null) return;
+    var t = e.changedTouches && e.changedTouches[0];
+    if (!t) return;
+    var dx = t.clientX - touchX;
+    var dy = t.clientY - touchY;
+    var dt = Date.now() - touchT;
+    touchX = null; touchY = null;
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) || dt > 800) return;
+    if (dx < 0) next(); else prev();
+  }, { passive: true });
+
+  // hash sync
+  window.addEventListener('hashchange', function () {
+    var mm = (window.location.hash || '').match(/^#s(\d+)$/);
+    if (mm) go(parseInt(mm[1], 10) - 1);
+  });
+
+  // resize: re-snap (no animated jank on rotate)
+  window.addEventListener('resize', function () {
+    track.style.transition = 'none';
+    track.style.transform = 'translateX(-' + (index * 100) + '%)';
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { track.style.transition = ''; });
+    });
+  });
+
+  // preload-friendly: announce ready
+  document.documentElement.dataset.deckReady = '1';
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,303 @@
+// LocalPulse — shared client logic for /, /responder
+(function () {
+  'use strict';
+
+  const LANGS = ['en', 'hi', 'pa', 'ta', 'bn'];
+  const STORAGE = { LANG: 'lp.lang', THEME: 'lp.theme' };
+  const SOLAN = [30.9087, 77.0959];
+
+  const state = {
+    lang: detectLang(),
+    dict: null,
+    incidents: [],
+    shelters: [],
+    summary: null,
+    filter: 'all',
+    map: null,
+    markers: [],
+    lastFetchOk: 0
+  };
+
+  function detectLang() {
+    try { const s = localStorage.getItem(STORAGE.LANG); if (s && LANGS.includes(s)) return s; } catch (_) {}
+    const n = (navigator.language || 'en').slice(0, 2).toLowerCase();
+    return LANGS.includes(n) ? n : 'en';
+  }
+  function saveLang(l) { try { localStorage.setItem(STORAGE.LANG, l); } catch (_) {} }
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    try { localStorage.setItem(STORAGE.THEME, theme); } catch (_) {}
+  }
+  function loadTheme() {
+    try { const s = localStorage.getItem(STORAGE.THEME); if (s) return s; } catch (_) {}
+    return document.documentElement.getAttribute('data-theme') || 'light';
+  }
+
+  function applyI18n() {
+    if (!state.dict) return;
+    const get = (path) => path.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : null), state.dict);
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const v = get(el.getAttribute('data-i18n'));
+      if (v != null) el.textContent = v;
+    });
+    document.documentElement.setAttribute('lang', state.lang);
+  }
+
+  async function fetchJson(url, opts) {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8000);
+    try {
+      const r = await fetch(url, Object.assign({ signal: ctrl.signal, credentials: 'same-origin' }, opts || {}));
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const j = await r.json();
+      state.lastFetchOk = Date.now();
+      cacheStash(url, j);
+      return j;
+    } catch (e) {
+      const cached = cacheLoad(url);
+      if (cached) return cached;
+      throw e;
+    } finally { clearTimeout(t); }
+  }
+  function cacheStash(url, data) { try { localStorage.setItem('lp.cache:' + url, JSON.stringify({ ts: Date.now(), data })); } catch (_) {} }
+  function cacheLoad(url) { try { const r = localStorage.getItem('lp.cache:' + url); if (!r) return null; return JSON.parse(r).data; } catch (_) { return null; } }
+
+  function formatAgo(ts) { return Math.max(1, Math.round((Date.now() - ts) / 60000)) + 'm'; }
+
+  function setStatus(s) {
+    const pill = document.getElementById('status-pill');
+    if (!pill) return;
+    pill.setAttribute('data-state', s);
+    const span = pill.querySelector('span:last-child');
+    if (span) {
+      const map = {
+        online: { en: 'Live', hi: 'लाइव', pa: 'ਲਾਈਵ', ta: 'நேரலை', bn: 'লাইভ' },
+        stale:  { en: 'Cached', hi: 'कैश्ड', pa: 'ਕੈਸ਼', ta: 'கேஷ்', bn: 'ক্যাশ' },
+        offline:{ en: 'Offline', hi: 'ऑफ़लाइन', pa: 'ਆਫ਼ਲਾਈਨ', ta: 'ஆஃப்லைன்', bn: 'অফলাইন' }
+      };
+      span.textContent = (map[s] && map[s][state.lang]) || s;
+    }
+  }
+
+  function initMap() {
+    const el = document.getElementById('map');
+    if (!el || !window.L) return;
+    state.map = L.map(el, { zoomControl: true }).setView(SOLAN, 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(state.map);
+  }
+  function clearMarkers() { state.markers.forEach(m => state.map.removeLayer(m)); state.markers = []; }
+  function renderMarkers() {
+    if (!state.map) return;
+    clearMarkers();
+    const items = state.filter === 'all' ? state.incidents : state.incidents.filter(i => i.category === state.filter);
+    items.forEach(i => {
+      const color = sevColor(i);
+      const marker = L.circleMarker([i.lat, i.lng], { radius: 10, color, fillColor: color, fillOpacity: 0.65, weight: 2 }).addTo(state.map);
+      const div = document.createElement('div');
+      const t = document.createElement('strong'); t.textContent = i.title; div.appendChild(t);
+      div.appendChild(document.createElement('br'));
+      div.appendChild(document.createTextNode(i.summary));
+      div.appendChild(document.createElement('br'));
+      const sm = document.createElement('small');
+      sm.textContent = i.verified + '/' + i.sources + ' verified · trust ' + Math.round(i.trust * 100) + '%';
+      div.appendChild(sm);
+      marker.bindPopup(div);
+      state.markers.push(marker);
+    });
+    state.shelters.forEach(s => {
+      const m = L.marker([s.lat, s.lng], { title: s.name });
+      const d = document.createElement('div');
+      const t = document.createElement('strong'); t.textContent = s.name; d.appendChild(t);
+      d.appendChild(document.createElement('br'));
+      d.appendChild(document.createTextNode(s.occupied + ' / ' + s.capacity + ' occupied'));
+      m.bindPopup(d).addTo(state.map);
+      state.markers.push(m);
+    });
+  }
+  function sevColor(i) {
+    if (i.category === 'rumor') return '#6B21A8';
+    if (i.severity === 'high') return '#B42318';
+    if (i.severity === 'medium') return '#B25E09';
+    return '#1E66F5';
+  }
+
+  function el(tag, attrs, kids) {
+    const e = document.createElement(tag);
+    if (attrs) for (const k in attrs) {
+      if (k === 'class') e.className = attrs[k];
+      else if (k.startsWith('data-')) e.setAttribute(k, attrs[k]);
+      else if (k === 'title' || k === 'role' || k === 'aria-label') e.setAttribute(k, attrs[k]);
+      else if (k === 'style') e.style.cssText = attrs[k];
+      else e[k] = attrs[k];
+    }
+    if (kids) (Array.isArray(kids) ? kids : [kids]).forEach(c => {
+      if (c == null) return;
+      e.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+    });
+    return e;
+  }
+  function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
+  function catLabel(c) { const d = state.dict && state.dict.cat; return (d && d[c]) || c; }
+
+  function renderIncidents() {
+    const list = document.getElementById('incident-list');
+    const count = document.getElementById('incident-count');
+    if (!list) return;
+    const items = state.filter === 'all' ? state.incidents : state.incidents.filter(i => i.category === state.filter);
+    if (count) count.textContent = items.length + ' active';
+    clear(list);
+    items.forEach(i => {
+      const li = el('li', { class: 'incident', 'data-sev': i.severity, 'data-cat': i.category });
+      li.appendChild(el('span', { class: 'incident-bar', 'aria-hidden': 'true' }));
+      const main = el('div');
+      main.appendChild(el('h3', { class: 'incident-title' }, i.title));
+      main.appendChild(el('p', { class: 'incident-summary' }, i.summary));
+      const meta = el('div', { class: 'incident-meta' });
+      meta.appendChild(el('span', { class: 'cat-tag', 'data-cat': i.category }, catLabel(i.category)));
+      meta.appendChild(el('span', null, i.verified + '/' + i.sources + ' verified'));
+      const tb = el('span', { class: 'trust-bar', title: 'trust ' + Math.round(i.trust * 100) + '%' });
+      tb.appendChild(el('span', { style: 'width:' + Math.round(i.trust * 100) + '%' }));
+      meta.appendChild(tb);
+      meta.appendChild(el('span', null, formatAgo(i.updatedAt) + ' ago'));
+      main.appendChild(meta);
+      li.appendChild(main);
+      li.appendChild(el('div'));
+      list.appendChild(li);
+    });
+  }
+
+  function renderSummary() {
+    const ul = document.getElementById('summary-list');
+    if (!ul || !state.summary) return;
+    clear(ul);
+    state.summary.bullets.forEach(b => ul.appendChild(el('li', null, b)));
+  }
+
+  function renderShelters() {
+    const grid = document.getElementById('shelter-grid');
+    if (!grid) return;
+    clear(grid);
+    state.shelters.forEach(s => {
+      const pct = Math.round((s.occupied / s.capacity) * 100);
+      const card = el('article', { class: 'shelter', 'data-full': pct >= 95 ? '1' : '0' });
+      card.appendChild(el('h3', null, s.name));
+      card.appendChild(el('div', { class: 'muted small' }, s.occupied + ' / ' + s.capacity + ' occupied'));
+      const occ = el('div', { class: 'occ' });
+      const bar = el('div', { class: 'occ-bar' });
+      bar.appendChild(el('div', { class: 'occ-fill', style: 'width:' + pct + '%' }));
+      occ.appendChild(bar);
+      occ.appendChild(el('span', null, pct + '%'));
+      card.appendChild(occ);
+      const am = el('div', { class: 'amen' });
+      s.amenities.forEach(a => am.appendChild(el('span', null, a)));
+      card.appendChild(am);
+      grid.appendChild(card);
+    });
+  }
+
+  function setKpi(id, v) { const e = document.getElementById(id); if (e) e.textContent = v; }
+
+  function bindFilters() {
+    document.querySelectorAll('.chip[data-filter]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.chip[data-filter]').forEach(b => b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+        state.filter = btn.dataset.filter;
+        renderIncidents();
+        renderMarkers();
+      });
+    });
+  }
+
+  function bindForm() {
+    const form = document.getElementById('user-report-form');
+    if (!form) return;
+    const status = document.getElementById('form-status');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const body = { category: fd.get('category'), message: String(fd.get('message') || '').trim(), lang: state.lang };
+      if (!body.message) { status.dataset.state = 'err'; status.textContent = 'Please describe what is happening.'; return; }
+      status.dataset.state = ''; status.textContent = 'Sending…';
+      try {
+        const r = await fetchJson('/api/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        status.textContent = 'Thanks. Reference: ' + r.id + '. Responders see verified reports within 60s.';
+        form.reset();
+      } catch (e) {
+        status.dataset.state = 'err';
+        status.textContent = 'Could not send. Saved locally; we will retry when online.';
+        try { localStorage.setItem('lp.queued', JSON.stringify({ ts: Date.now(), body })); } catch (_) {}
+      }
+    });
+  }
+
+  function bindPulse() {
+    if (!('EventSource' in window)) return;
+    const es = new EventSource('/api/pulse');
+    const stream = document.getElementById('pulse-stream');
+    es.addEventListener('pulse', (e) => {
+      try {
+        const d = JSON.parse(e.data);
+        setKpi('kpi-incidents', d.activeIncidents);
+        setKpi('kpi-shelters', d.sheltersOpen);
+        setKpi('kpi-voice', d.voiceCalls);
+        setKpi('kpi-sources', d.sourcesIngested.toLocaleString());
+        setStatus('online');
+        if (stream) {
+          const line = '[' + new Date(d.ts).toLocaleTimeString() + '] inc=' + d.activeIncidents + ' sh=' + d.sheltersOpen + ' vc=' + d.voiceCalls + ' src=' + d.sourcesIngested + '\n';
+          stream.textContent = (line + stream.textContent).slice(0, 4000);
+        }
+      } catch (_) {}
+    });
+    es.addEventListener('error', () => setStatus('stale'));
+  }
+
+  async function reload() {
+    try {
+      const [d, s, i, sh] = await Promise.all([
+        fetchJson('/api/i18n'),
+        fetchJson('/api/summary?lang=' + state.lang),
+        fetchJson('/api/incidents?lang=' + state.lang),
+        fetchJson('/api/shelters')
+      ]);
+      state.dict = d.dict[state.lang] || d.dict.en;
+      state.summary = s;
+      state.incidents = i.items;
+      state.shelters = sh.items;
+      window.LP_state = state;
+      applyI18n();
+      renderSummary();
+      renderIncidents();
+      renderShelters();
+      renderMarkers();
+      setStatus('online');
+      setKpi('kpi-incidents', state.incidents.length);
+      setKpi('kpi-shelters', state.shelters.length);
+      setKpi('kpi-voice', '14');
+      setKpi('kpi-sources', '1,247');
+    } catch (e) { setStatus('offline'); }
+  }
+
+  function boot() {
+    applyTheme(loadTheme());
+    const tb = document.getElementById('theme-toggle');
+    if (tb) tb.addEventListener('click', () => {
+      const next = (document.documentElement.getAttribute('data-theme') === 'dark') ? 'light' : 'dark';
+      applyTheme(next);
+    });
+    const sel = document.getElementById('lang-select');
+    if (sel) {
+      sel.value = state.lang;
+      sel.addEventListener('change', () => { state.lang = sel.value; saveLang(state.lang); reload(); });
+    }
+    initMap();
+    bindFilters();
+    bindForm();
+    bindPulse();
+    reload();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();

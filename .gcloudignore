@@ -1,0 +1,10 @@
+.git
+.github
+.gitignore
+*.docx
+node_modules
+.env*
+*.log
+.DS_Store
+.vscode
+.idea
